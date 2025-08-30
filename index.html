@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orange Frame PFP Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <style>
+        /* General Styling */
+        :root {
+            --orange-color: #ff9f00;
+            --dark-orange: #e68a00;
+            --light-orange: #ffd073;
+            --bg-color: #ffc34d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Luckiest Guy', cursive;
+            background-color: var(--bg-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Animated Background */
+        .bg-element {
+            position: absolute;
+            opacity: 0.8;
+            animation-duration: 20s;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+
+        .star {
+            color: #fff700;
+            font-size: 1rem;
+            animation-name: blink;
+            animation-duration: 2s;
+        }
+
+        .orange-icon {
+            font-size: 2rem;
+            animation-name: float;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Headline */
+        h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: bold;
+            color: white;
+            text-shadow: 4px 4px 0px var(--dark-orange);
+            letter-spacing: 2px;
+            animation: slideInDown 1s ease-out forwards;
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* PFP Container and Canvas */
+        #pfp-container {
+            /* Yahan size badha diya gaya hai */
+            width: 350px;
+            height: 350px;
+            position: relative;
+            border-radius: 50%;
+            animation: popIn 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.5s forwards;
+            transform: scale(0);
+        }
+        
+        #pfp-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
+
+        @keyframes popIn {
+             to { transform: scale(1); }
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Luckiest Guy', cursive;
+            background: var(--orange-color);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 0 var(--dark-orange);
+            transition: all 0.2s ease-in-out;
+            animation: pulse 2s infinite 1s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 var(--dark-orange);
+            animation-play-state: paused;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 var(--dark-orange);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Container for animated background elements -->
+    <div id="background-wrapper"></div>
+
+    <div class="container">
+        <!-- Headline -->
+        <h1>Make your pfp in orange frame</h1>
+
+        <!-- PFP editor area -->
+        <div id="pfp-container">
+            <canvas id="pfp-canvas" width="500" height="500"></canvas>
+        </div>
+
+        <!-- Hidden file input -->
+        <input type="file" id="image-upload" accept="image/*" style="display: none;">
+        
+        <!-- Custom upload button -->
+        <label for="image-upload" class="btn" id="upload-button">Upload your picture</label>
+
+        <!-- Download button, hidden initially -->
+        <a href="#" id="download-button" class="btn" style="display: none;" download="orange-pfp.png">Download</a>
+    </div>
+
+    <script>
+        // --- Get DOM Elements ---
+        const canvas = document.getElementById('pfp-canvas');
+        const ctx = canvas.getContext('2d');
+        const imageUpload = document.getElementById('image-upload');
+        const downloadButton = document.getElementById('download-button');
+        const uploadButton = document.getElementById('upload-button');
+
+        // --- Load Frame Image ---
+        const frameImage = new Image();
+        frameImage.src = 'orng-removebg-preview.png'; // Circular orange slice frame
+        frameImage.crossOrigin = "anonymous"; // Important for canvas security
+
+        // Draw initial state (just the frame) when the frame image loads
+        frameImage.onload = () => {
+            ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+        };
+
+        // --- Event Listener for File Upload ---
+        imageUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const userImage = new Image();
+                    userImage.onload = () => {
+                        // Clear canvas
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        // --- Draw Circular User Image ---
+                        // Frame ke border ke liye jagah chhodne ke liye radius ko thoda chhota karein
+                        const radius = canvas.width / 2 * 0.67; // Radius ko 85% tak kam kar diya
+                        const offset = (canvas.width / 2) - radius; // Center karne ke liye offset
+
+                        ctx.save(); // Save the current state
+                        ctx.beginPath();
+                        // Naya, chhota circular clipping path banayein
+                        ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2, true);
+                        ctx.closePath();
+                        ctx.clip(); // Apply the clipping path
+
+                        // Calculate aspect ratio to fit and cover the circle
+                        const canvasAspect = 1;
+                        const imageAspect = userImage.width / userImage.height;
+                        let sx, sy, sWidth, sHeight;
+
+                        if (imageAspect > canvasAspect) {
+                            sHeight = userImage.height;
+                            sWidth = userImage.height * canvasAspect;
+                            sx = (userImage.width - sWidth) / 2;
+                            sy = 0;
+                        } else {
+                            sWidth = userImage.width;
+                            sHeight = userImage.width / canvasAspect;
+                            sx = 0;
+                            sy = (userImage.height - sHeight) / 2;
+                        }
+                        
+                        // User image ko chhoote, centered area me draw karein
+                        ctx.drawImage(userImage, sx, sy, sWidth, sHeight, offset, offset, radius * 2, radius * 2);
+                        
+                        ctx.restore(); // Restore the state, removing the clip
+
+                        // --- Draw Frame on Top ---
+                        ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+                        
+                        // --- Show Download Button ---
+                        downloadButton.style.display = 'inline-block';
+                        downloadButton.style.animation = 'popIn 0.5s ease forwards';
+                        uploadButton.textContent = "Choose another picture";
+                    };
+                    userImage.src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- Event Listener for Download Button ---
+        downloadButton.addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png');
+            downloadButton.href = dataURL;
+        });
+
+        // --- Animated Background Generator ---
+        const bgWrapper = document.getElementById('background-wrapper');
+        const numStars = 50;
+        const numOranges = 15;
+
+        function createBgElements() {
+            // Create Stars
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'bg-element star';
+                star.textContent = '✦';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                star.style.fontSize = `${0.5 + Math.random() * 1}rem`;
+                bgWrapper.appendChild(star);
+            }
+            // Create Oranges
+            for (let i = 0; i < numOranges; i++) {
+                const orange = document.createElement('div');
+                orange.className = 'bg-element orange-icon';
+                orange.textContent = '🍊';
+                orange.style.left = `${Math.random() * 100}vw`;
+                orange.style.animationDuration = `${10 + Math.random() * 15}s`;
+                orange.style.animationDelay = `${Math.random() * 10}s`;
+                bgWrapper.appendChild(orange);
+            }
+        }
+        
+        // Initialize background animation on window load
+        window.onload = createBgElements;
+
+    </script>
+</body>
+</html>
+
